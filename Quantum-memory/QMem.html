@@ -1,0 +1,163 @@
+<html>
+<head>
+<title>QMem
+</title>
+</head>
+<body>
+<h1 style="font-family:CMU Serif;text-align:center;">
+QMem
+</h1>
+<p style="font-family:Times New Roman;font-size:100%;text-align:justify;"><br>
+1. Implementing the virtual memory<br><br>&nbsp;&nbsp;In saving the phase of our qubits post-measurement, we have attached, to our "backend", a model of memory not readily associated with any of the existing quantum computers. Among the various ostensibly esoteric features of this model, we have the fact that there is an <i>additional one byte</i> of classical memory to be associated with each quantum bit.<br>We will be extensively reliant on the list processing library of Python for a somewhat trivial reason; a careful study of the early documentation will quickly make it apparent that the author anticipated an extensive use of C, <i>not</i> Python. This is natural, since low-level computing generally shies away from massive reliance on scripts for the smallest requirements, or so it used to be. However, the crucial <i>QISKit</i> library was built for use with Python and its closest associates- forcing the author to spend undue effort on porting Python to C (or vice versa) rather than concentrating on the more important details.<br>We will encode the state of each qubit as:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font face="CMU Typewriter Text"><b> ( r0, n0, n1 ) </b></font> := ( |&lang;0|<i>q</i>&rang;|<sup>2</sup>, <i>&phi;</i><sub>0</sub>, <i>&phi;</i><sub>1</sub> )<br>where <i>q</i> is the qubit's wavefunction in the (|0&rang;,|1&rang;) basis, and the <i>&phi;</i>'s are the phases of its projections.<br>&nbsp;&nbsp;This is a non-trivial thing to go on, and so we shall experiment with this by placing various quantum-electronic (possibly spintronic?) components on a kind of virtual breadboard, and make our observations. The reader will remember that this visualisation of a breadboard is also thoroughly useful in the interpreting of the observations made using the <i>symbol implementation</i> part of our project- the so-called "Physics Engine". However, we recall here a consideration that is all but trivial; we note that, classically, the specification of sequences of <i>gates</i> or similar components, to be applied to various memory elements, constitutes the use of a <i>hardware description language</i>, not a <i>computer programming language</i>. Keeping this in mind, we find that it is useful to truncate a long sequence of single qubit gates into one operation, since, at the end of such an operation, we have a means of obtaining the phase and the norm of that qubit, effectively taking it from one well-defined state to another. <br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; Routine to get norm. &rang;:-<br>
+def <i>r</i><sub>1</sub> ( <i>r</i><sub>0</sub>, <i>n</i><sub>0</sub>, <i>n</i><sub>1</sub>, <i>circ</i> ):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>q</i> &larr; <i>QuantumRegister</i> (1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>c</i> &larr; <i>ClassicalRegister</i> (1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i> &larr; <i>QuantumCircuit</i>(<i>q</i>, <i>c</i>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i>.<i>u</i>3 (2&times;<i>m</i>.<i>acos</i> ( <i>r</i><sub>0</sub> ), <i>n</i><sub>1</sub>&times;<i>m</i>.<i>&pi;</i>/8,0,<i>q</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i>.<i>x</i> ( <i>q</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i>.<i>u</i>1 ( <i>n</i><sub>0</sub>&times;<i>m</i>.<i>&pi;</i>/8, <i>q</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i>.<i>x</i>( <i>q</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for <i>i</i> in <i>range</i> ( <i>len</i> ( <i>circ</i> )):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if <i>circ</i> [ <i>i</i> ] is '<i>x</i>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i>.<i>x</i>( <i>q</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif <i>circ</i> [ <i>i</i> ] is '<i>s</i>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i>.<i>s</i>( <i>q</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif <i>circ</i> [ <i>i</i> ] is '<i>t</i>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i>.<i>t</i> ( <i>q</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif <i>circ</i> [ <i>i</i> ] is '<i>h</i>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i>.<i>h</i>( <i>q</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>qc</i>.<i>measure</i>( <i>q</i> , <i>c</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>backend</i> &larr; <i>Aer</i>.<i>get_backend</i> ('<i>qasm_simulator</i>')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>job_sim</i> &larr; <i>execute</i> (<i>qc</i> , <i>backend</i> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>sim_result</i> &larr; <i>job_sim</i>.<i>result</i> ()<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return <i>sim_result</i>.<i>get_counts</i> (<i>qc</i> )<br>
+
+</b></p>
+<p style="font-family:Times New Roman;font-size:100%;text-align:justify;"><br>
+Evaluating the phase, as the integer coefficient of <i>&pi;</i>/8.<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; Routine to get phase. &rang;:-<br>
+def <i>p</i><sub>1</sub> ( <i>N</i><sub>0</sub>, <i>N</i><sub>1</sub>, <i>circ</i> ):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>0</sub> &larr;&nbsp;&nbsp;<i>N</i><sub>0</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>1</sub> &larr;&nbsp;&nbsp;<i>N</i><sub>1</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>s</i> &larr;&nbsp;&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>H</i> &larr;&nbsp;&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for <i>i</i> in <i>range</i>( <i>len</i> ( <i>circ</i> )):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if <i>circ</i> [ <i>i</i> ] is '<i>x</i>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>temp</i> &larr;&nbsp;&nbsp;<i>n</i><sub>0</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>0</sub> &larr;&nbsp;&nbsp;<i>n</i><sub>1</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>1</sub> &larr;&nbsp;&nbsp;<i>temp</i><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>s</i> &larr;&nbsp;&nbsp;( <i>s</i> + 1) mod 2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif <i>circ</i> [ <i>i</i> ] is '<i>s</i>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>1</sub> &larr;&nbsp;&nbsp;(<i>n</i><sub>1</sub> + 8) mod 16<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif <i>circ</i> [ <i>i</i> ] is '<i>t</i>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>1</sub> &larr;&nbsp;&nbsp;(<i>n</i><sub>1</sub> + 2) mod 16<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif <i>circ</i> [ <i>i</i> ] is '<i>h</i>':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if <i>H</i> is 0 and <i>s</i> is 0:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>1</sub> &larr;&nbsp;&nbsp;<i>n</i><sub>0</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>H</i> &larr;&nbsp;&nbsp;1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if <i>H</i> is 0 and <i>s</i> is 1:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>0</sub> &larr;&nbsp;&nbsp;<i>n</i><sub>1</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>1</sub> &larr;&nbsp;&nbsp;(<i>n</i><sub>1</sub> + 8) mod 16<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>H</i> &larr;&nbsp;&nbsp;1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if <i>H</i> is 1:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>0</sub> &larr;&nbsp;&nbsp;((<i>n</i><sub>0</sub> + <i>n</i><sub>1</sub>))/2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>n</i><sub>1</sub> &larr;&nbsp;&nbsp;((<i>n</i><sub>0</sub> + <i>n</i><sub>1</sub> + 8))/2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return 16&times;<i>n</i><sub>1</sub> + <i>n</i><sub>0</sub><br>
+
+</b></p>
+<p style="font-family:Times New Roman;font-size:100%;text-align:justify;"><br>
+Put them together,<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; Get both phase and norm. &rang;:-<br>
+def <i>eval</i> ( <i>r</i><sub>0</sub>, <i>n</i><sub>0</sub>, <i>n</i><sub>1</sub>, <i>q</i> ):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>R</i><sub>0</sub> &larr;&nbsp;&nbsp;r1(<i>r</i><sub>0</sub>,<i>n</i><sub>0</sub>,<i>n</i><sub>1</sub>,<i>q</i>)['0']/1024<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>N</i><sub>0</sub> &larr;&nbsp;&nbsp;p1(<i>n</i><sub>0</sub>,<i>n</i><sub>1</sub>,<i>q</i>)%16<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>N</i><sub>1</sub> &larr;&nbsp;&nbsp;( p1(<i>n</i><sub>0</sub>,<i>n</i><sub>1</sub>,<i>q</i>) - <i>N</i><sub>0</sub>)/16<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>res</i> &larr;&nbsp;&nbsp;[<i>R</i><sub>0</sub>,<i>N</i><sub>0</sub>,<i>N</i><sub>1</sub>]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return <i>res</i><br>
+
+</b></p>
+<p style="font-family:Times New Roman;font-size:100%;text-align:justify;"><br>
+Imports:<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; Start &rang;:-<br>
+from <font face="CMU Typewriter Text"><b>qiskit</b></font> import <i>QuantumRegister</i>, <i>ClassicalRegister</i><br>
+from <font face="CMU Typewriter Text"><b>qiskit</b></font> import <i>QuantumCircuit</i>, <i>Aer</i>, <i>execute</i><br>
+import <font face="CMU Typewriter Text"><b>math</b></font> as <i>m</i><br>
+
+</b></p>
+<p style="font-family:Times New Roman;font-size:100%;text-align:justify;"><br>
+Finally,<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; Full logic circuit evaluation. &rang;:-<br>
+def <i>exec</i> ( <i>C</i> , <i>R</i> , <i>N</i><sub>0</sub> , <i>N</i><sub>1</sub> ):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>i</i> &larr; 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>res</i> &larr; []<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for <i>line</i> in <i>C</i>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>res</i>.<i>append</i>( <i>eval</i> ( <i>R</i> [ <i>i</i> ], <i>N</i><sub>0</sub> [ <i>i</i> ], <i>N</i><sub>1</sub> [ <i>i</i> ], <i>line</i> ))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return <i>res</i><br>
+
+</b></p>
+<p style="font-family:Times New Roman;font-size:100%;text-align:justify;"><br>
+Overall:<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; Start &rang;<br>
+&lang; Routine to get norm. &rang;<br>
+&lang; Routine to get phase. &rang;<br>
+&lang; Get both phase and norm. &rang;<br>
+&lang; Full logic circuit evaluation. &rang;<br>
+
+</b></p>
+<p style="font-family:Times New Roman;font-size:100%;text-align:justify;"><br>
+2. <b>Operations</b><br>To this, we may add our all-important CNOT-without-entanglement method:<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; CNOT without entanglement. &rang;:-<br>
+def <i>ctrl_u</i> ( <i>ctr</i>, <i>tgt</i>, <i>U</i> ):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp; <i>R</i><sub>1</sub> &larr; <font face="CMU Typewriter Text"><b>mem</b></font>[<i>ctr</i>][0]<br>
+&nbsp;&nbsp;&nbsp;&nbsp; <i>R</i><sub>2</sub> &larr; <font face="CMU Typewriter Text"><b>mem</b></font>[<i>tgt</i>][0]<br>
+&nbsp;&nbsp;&nbsp;&nbsp; <i>n</i><sub>0</sub> &larr; <font face="CMU Typewriter Text"><b>mem</b></font>[<i>tgt</i>][1]<br>
+&nbsp;&nbsp;&nbsp;&nbsp; <i>n</i><sub>1</sub> &larr; <font face="CMU Typewriter Text"><b>mem</b></font>[<i>tgt</i>][2]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#Prep temporary qubit<br>
+&nbsp;&nbsp;&nbsp;&nbsp;q&nbsp;&nbsp;&larr; QuantumRegister(1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;c&nbsp;&nbsp;&larr; ClassicalRegister(1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;qc&nbsp;&nbsp;&larr; QuantumCircuit(q, c)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;qc.u3(2*m.acos( <i>R</i><sub>2</sub>), <i>n</i><sub>1</sub>*m.pi/8,0,q)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;qc.x(q)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;qc.u1( <i>n</i><sub>0</sub>*m.pi/8,q)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;qc.x(q)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;A &larr; r(&nbsp;&nbsp;<i>R</i><sub>2</sub>,&nbsp;&nbsp;<i>n</i><sub>0</sub>,&nbsp;&nbsp;<i>n</i><sub>1</sub>, U )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font face="CMU Typewriter Text"><b>mem</b></font>[tgt][0] &larr; A*(1 -&nbsp;&nbsp;<i>R</i><sub>2</sub>) +&nbsp;&nbsp;<i>R</i><sub>2</sub>* <i>R</i><sub>1</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font face="CMU Typewriter Text"><b>mem</b></font>[tgt][1] &larr; 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font face="CMU Typewriter Text"><b>mem</b></font>[tgt][2] &larr; 0<br>
+<br>
+</b>(A little extra-)<b><br>
+<br>
+def apply( addr, U ):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;mem[addr][0]= r( mem[addr][0], mem[addr][1], mem[addr][2], U )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;mem[addr][1]= p0( mem[addr][1], mem[addr][2], U )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;mem[addr][2]= p1( mem[addr][1], mem[addr][2], U )<br>
+
+</b></p>
+<p style="font-family:Times New Roman;font-size:100%;text-align:justify;"><br>
+And we may experiment with it:<br><font face="CMU Typewriter Text"><b><br>>>apply(8,'xshtx')<br>>>mem[8]<br>[0.474609375, 8.0, 4.0]<br>>>ctrl_u(8,3,'x')<br>>>mem[3]<br>[0.6316108703613281, 0, 0]<br></b></font><br>
+</p>

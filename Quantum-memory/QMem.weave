@@ -1,0 +1,174 @@
+@
+1. Implementing the virtual memory
+
+  In saving the phase of our qubits post-measurement, we have attached, to our "backend", a model of memory not readily associated with any of the existing quantum computers. Among the various ostensibly esoteric features of this model, we have the fact that there is an -{additional one byte}- of classical memory to be associated with each quantum bit.
+We will be extensively reliant on the list processing library of Python for a somewhat trivial reason; a careful study of the early documentation will quickly make it apparent that the author anticipated an extensive use of C, -{not}- Python. This is natural, since low-level computing generally shies away from massive reliance on scripts for the smallest requirements, or so it used to be. However, the crucial -{QISKit}- library was built for use with Python and its closest associates- forcing the author to spend undue effort on porting Python to C (or vice versa) rather than concentrating on the more important details.
+We will encode the state of each qubit as:
+      #{ ( r0, n0, n1 ) }# := ( |[[0|-{q}-]]|^{2}^, -{|{phi}|}-_{0}_, -{|{phi}|}-_{1}_ )
+where -{q}- is the qubit's wavefunction in the (|0]],|1]]) basis, and the -{|{phi}|}-'s are the phases of its projections.
+  This is a non-trivial thing to go on, and so we shall experiment with this by placing various quantum-electronic (possibly spintronic?) components on a kind of virtual breadboard, and make our observations. The reader will remember that this visualisation of a breadboard is also thoroughly useful in the interpreting of the observations made using the -{symbol implementation}- part of our project- the so-called "Physics Engine". However, we recall here a consideration that is all but trivial; we note that, classically, the specification of sequences of -{gates}- or similar components, to be applied to various memory elements, constitutes the use of a -{hardware description language}-, not a -{computer programming language}-. Keeping this in mind, we find that it is useful to truncate a long sequence of single qubit gates into one operation, since, at the end of such an operation, we have a means of obtaining the phase and the norm of that qubit, effectively taking it from one well-defined state to another. 
+/@
+$
+C
+[[ Routine to get norm. ]]:-
+def -{r}-_{1}_ ( -{r}-_{0}_, -{n}-_{0}_, -{n}-_{1}_, -{circ}- ):
+    -{q}- <- -{QuantumRegister}- (1)
+    -{c}- <- -{ClassicalRegister}- (1)
+    -{qc}- <- -{QuantumCircuit}-(-{q}-, -{c}-)
+    
+    -{qc}-.-{u}-3 (2(*)-{m}-.-{acos}- ( -{r}-_{0}_ ), -{n}-_{1}_(*)-{m}-.-{|{pi}|}-/8,0,-{q}- )
+    -{qc}-.-{x}- ( -{q}- )
+    -{qc}-.-{u}-1 ( -{n}-_{0}_(*)-{m}-.-{|{pi}|}-/8, -{q}- )
+    -{qc}-.-{x}-( -{q}- )
+    for -{i}- in -{range}- ( -{len}- ( -{circ}- )):
+        if -{circ}- [ -{i}- ] is '-{x}-':
+            -{qc}-.-{x}-( -{q}- )
+        elif -{circ}- [ -{i}- ] is '-{s}-':
+            -{qc}-.-{s}-( -{q}- )
+        elif -{circ}- [ -{i}- ] is '-{t}-':
+            -{qc}-.-{t}- ( -{q}- )
+        elif -{circ}- [ -{i}- ] is '-{h}-':
+            -{qc}-.-{h}-( -{q}- )
+    -{qc}-.-{measure}-( -{q}- , -{c}- )
+    
+    -{backend}- <- -{Aer}-.-{get_backend}- ('-{qasm_simulator}-')
+    -{job_sim}- <- -{execute}- (-{qc}- , -{backend}- )
+    -{sim_result}- <- -{job_sim}-.-{result}- ()
+
+    return -{sim_result}-.-{get_counts}- (-{qc}- )
+/$
+@
+Evaluating the phase, as the integer coefficient of -{|{pi}|}-/8.
+/@
+$
+C
+[[ Routine to get phase. ]]:-
+def -{p}-_{1}_ ( -{N}-_{0}_, -{N}-_{1}_, -{circ}- ):
+    -{n}-_{0}_ <-  -{N}-_{0}_
+    -{n}-_{1}_ <-  -{N}-_{1}_
+    -{s}- <-  0
+    -{H}- <-  0
+    for -{i}- in -{range}-( -{len}- ( -{circ}- )):
+        if -{circ}- [ -{i}- ] is '-{x}-':
+            -{temp}- <-  -{n}-_{0}_
+            -{n}-_{0}_ <-  -{n}-_{1}_
+            -{n}-_{1}_ <-  -{temp}-
+            -{s}- <-  ( -{s}- + 1) mod 2
+        elif -{circ}- [ -{i}- ] is '-{s}-':
+            -{n}-_{1}_ <-  (-{n}-_{1}_ + 8) mod 16
+        elif -{circ}- [ -{i}- ] is '-{t}-':
+            -{n}-_{1}_ <-  (-{n}-_{1}_ + 2) mod 16
+        elif -{circ}- [ -{i}- ] is '-{h}-':
+            if -{H}- is 0 and -{s}- is 0:
+                -{n}-_{1}_ <-  -{n}-_{0}_
+                -{H}- <-  1
+            if -{H}- is 0 and -{s}- is 1:
+                -{n}-_{0}_ <-  -{n}-_{1}_
+                -{n}-_{1}_ <-  (-{n}-_{1}_ + 8) mod 16
+                -{H}- <-  1
+            if -{H}- is 1:
+                -{n}-_{0}_ <-  ((-{n}-_{0}_ + -{n}-_{1}_))/2
+                -{n}-_{1}_ <-  ((-{n}-_{0}_ + -{n}-_{1}_ + 8))/2
+    return 16(*)-{n}-_{1}_ + -{n}-_{0}_
+/$
+@
+Put them together,
+/@
+$
+C
+[[ Get both phase and norm. ]]:-
+def -{eval}- ( -{r}-_{0}_, -{n}-_{0}_, -{n}-_{1}_, -{q}- ):
+    -{R}-_{0}_ <-  r1(-{r}-_{0}_,-{n}-_{0}_,-{n}-_{1}_,-{q}-)['0']/1024
+    -{N}-_{0}_ <-  p1(-{n}-_{0}_,-{n}-_{1}_,-{q}-)%16
+    -{N}-_{1}_ <-  ( p1(-{n}-_{0}_,-{n}-_{1}_,-{q}-) - -{N}-_{0}_)/16
+    
+    -{res}- <-  [-{R}-_{0}_,-{N}-_{0}_,-{N}-_{1}_]
+    return -{res}-
+/$
+@
+Imports:
+/@
+$
+C
+[[ Start ]]:-
+from #{qiskit}# import -{QuantumRegister}-, -{ClassicalRegister}-
+from #{qiskit}# import -{QuantumCircuit}-, -{Aer}-, -{execute}-
+import #{math}# as -{m}-
+/$
+@
+Finally,
+/@
+$
+C
+[[ Full logic circuit evaluation. ]]:-
+def -{exec}- ( -{C}- , -{R}- , -{N}-_{0}_ , -{N}-_{1}_ ):
+    -{i}- <- 0
+    
+    -{res}- <- []
+    for -{line}- in -{C}-:
+        -{res}-.-{append}-( -{eval}- ( -{R}- [ -{i}- ], -{N}-_{0}_ [ -{i}- ], -{N}-_{1}_ [ -{i}- ], -{line}- ))
+    return -{res}-
+/$
+@
+Overall:
+/@
+$
+QMem.py
+[[ Start ]]
+[[ Routine to get norm. ]]
+[[ Routine to get phase. ]]
+[[ Get both phase and norm. ]]
+[[ Full logic circuit evaluation. ]]
+/$
+
+@
+2. *{Operations}*
+To this, we may add our all-important CNOT-without-entanglement method:
+/@
+
+$
+C
+[[ CNOT without entanglement. ]]:-
+def -{ctrl_u}- ( -{ctr}-, -{tgt}-, -{U}- ):
+    
+     -{R}-_{1}_ <- #{mem}#[-{ctr}-][0]
+     -{R}-_{2}_ <- #{mem}#[-{tgt}-][0]
+     -{n}-_{0}_ <- #{mem}#[-{tgt}-][1]
+     -{n}-_{1}_ <- #{mem}#[-{tgt}-][2]
+    
+    #Prep temporary qubit
+    q  <- QuantumRegister(1)
+    c  <- ClassicalRegister(1)
+    qc  <- QuantumCircuit(q, c)
+    
+    qc.u3(2*m.acos( -{R}-_{2}_), -{n}-_{1}_*m.pi/8,0,q)
+    qc.x(q)
+    qc.u1( -{n}-_{0}_*m.pi/8,q)
+    qc.x(q)
+    
+    A <- r(  -{R}-_{2}_,  -{n}-_{0}_,  -{n}-_{1}_, U )
+    
+    #{mem}#[tgt][0] <- A*(1 -  -{R}-_{2}_) +  -{R}-_{2}_* -{R}-_{1}_
+    #{mem}#[tgt][1] <- 0
+    #{mem}#[tgt][2] <- 0
+
+/*A little extra-*/
+
+def apply( addr, U ):
+    mem[addr][0]= r( mem[addr][0], mem[addr][1], mem[addr][2], U )
+    mem[addr][1]= p0( mem[addr][1], mem[addr][2], U )
+    mem[addr][2]= p1( mem[addr][1], mem[addr][2], U )
+/$
+
+@
+And we may experiment with it:
+#{
+>>apply(8,'xshtx')
+>>mem[8]
+[0.474609375, 8.0, 4.0]
+>>ctrl_u(8,3,'x')
+>>mem[3]
+[0.6316108703613281, 0, 0]
+}#
+/@
+endw
