@@ -1,0 +1,162 @@
+@
+*{Abstract}*
+John Preskill (2018) has listed out a number of applications of NISQ, with an implicit request for interested scientists/engineers to discipline themselves to respect the 50-qubit “barrier”. However, the existence of powerful simulators (eg. QISKit) and sound theory (eg. phase estimation) opens up the possibility that we may implement a time-sharing scheme so as to reuse- and thus effectively multiply- the qubits of a restricted topology, and construct a simulator of high-level devices. Besides this, we can also specify various implemntations of the qubit and compile programs which target various implementations of qubits. We construct a simulator for devices based on a specification of various real and imagined unitary operators, acting on various implementations of the qubit. This should enable users to use the simulator, not only to implement high-level algorithms, but also to study and evaluate various hypothetical quantum-classical combination architectures.
+
+
+
+<u>Chapter 1</u>
+
+*{Introduction}*
+
+
+*{1.1 Quantum Computing}*
+
+The earliest electronic computers made extensive use of electromagnetic relays and, later, vacuum tubes, which were used to implement discrete states in voltage. The quest for the next logical improvement upon these has led to various technological revolutions since the 1940s- the most significant, perhaps, being the semiconductor revolution. There have been others since, though these have failed to penetrate the popular knowledge; the designs of flip flops (and of logic gates in processing them) also deserve special mention in this regard. Ever since the immense versitality of the transistor was discovered, this quest has accumulated the interest of the concerned practitioners to the point that arxiv.org- the online repository for papers awaiting peer review- has been induced ot open up a special sub-repository, dedicated almost entirely to their investigations (this is the so-called "Emerging technology repository, which can be found at: <font face="CMU Typewriter Text">https://arxiv.org/list/cs.ET/recent</font>.) Indeed, unbeknownst to most, the 1950s did -{not}- mark the end of engineering interest in analog computing [1].
+The success of semiconductors is founded upon the sound theory behind solid-state physics, which further inherits a great deal of its success from the exactness of quantum mechanics. However, its use of quantum mechanics did not exploit the essential randomness of quantum physics. This, in addition to a few insights that came to the fore in the 1980s [2],[3] led to the then-theoretical paradigm of quantum computing.
+
+Quantum computing was a largely academic body of study in the 1980s when it was first conceived by a handful of scientists simultaneously, (although, some scientists- Stern and Gerlach, in particular- had played around with the two-state systems, so central to the subject, several decades earlier.) However, with the realisation of the more stable devices that were suggested by these early researches, it has moved from the realm of academia to the business concerns of stakeholders in computer science and computer engineering.
+
+It is contended to give a significant speedup over classical computing, the first realisation of this having come from Richard Feynman in the 1980s [2], who identified a considerable class of problems whose effective solutions would be very inefficient when implemented with even the most powerful computers then extant. As a resolution of this, he proposed a model of an analog computer that would exploit the previously ignored principles in quantum mechanics. Subsequently, as the study of this model became more extensive, it was discovered that certain instances of it allowed for NP-complete problems to be solved at the rate that classical computers solve polynomial-time problems (these are the so-called BQP problems- *{B}*ounded-error *{Q}*uantum-*{P}*olynomial.) However, this speedup is superficial and often impractical when the number of "qubits"- *{qu}*antum *{bits}*- in use is too few (many sources place a threshold of 100 qubits.) This has not, however, restrained scientists and engineers, who write algorithms for large, hypothetical quantum computers and also design hardware architectures for these future devices. Indeed, -{Shor's algorithm}- is one of the earliest examples of a significant quantum algorithm, which, however, remains little more than a brilliant theoretical novelty- its immense practical appointments being constrained by the unweildiness and speed of existing quantum computers.
+
+*{References}*
+1."Not Your Father's Analog Computer", Y. Tsividis (2017)
+2. "Simulating Physics with Computers", R.P. Feynman (1981) 
+3. "Quantum theory, the Church-Turing principle and the universal quantum computer", D. Deutsch (1985)
+
+*{1.2 The purpose of this project}*
+The author, while occupied with a question concering canonical quantisation, concieved of a scheme whereby one can reasonably associate a large class of quantities with operators on Hilbert space, while obeying a subset of the quantisation axioms. This class is much larger than any of those previously amenable to processing of this sort. Subsequently, this enabled the conception of a software that may provide instruction as to  how a quantum system may make transitions in various bases- even those corresponding to highly complex operators/quantities.
+
+By combining the exact science that is the formalism of non-relativistic quantum mechanics, and the simplicity of this scheme, the author has endeavoured to design a software which will both:
+a) Instruct a user as to how to realise a quantum computer that uses some user-specified implementation of discrete states by computing what unitary operators may be needed for certain programs to run on the system.
+b) Simulate sufficiently small (yet larger-than-normal) programs with QISKit, using a certain scheme to reuse qubits in that limited topology.
+
+*{1.3 Project Plan}*
+As can be seen from the previous section, the plan (and, thereby, the construction concerns) of the software may be divided sharply into 2:
+
+Part a)-
+i) Process formulae for the phase-space basis
+ii) Process formulae for the quantities to be measured
+iii) Read machine instructions
+iv) Print formula for potentials
+
+Part b)-
+i) Create approximation and boundaries of equivalence classes in phase space
+ii) Translate operator and issue instructions to QISKit
+
+The detailed plan can be easily gleaned from the interpretation of the machine instructions in terms of the standard notations of quantum mechanics, as presented below. Each instruction corresponds to a function -{F}- which then acts on the wavefunction -{|{psi}|}- of the system, so as to effect a transformation:
+
+[[ |{psi}|_{-{f}-}_ | -{f|{#770}|}- | |{psi}| ]] |{rarr}| [[ |{psi}|_{-{f}-}_ | -{f|{#770}|}- + -{F}- (-{f|{#770}|}-) | |{psi}| ]]
+
+The software will be, therefore, composed of modules that must perform the following:
+For part (a):
+1) Process the basis of |{psi}|
+2) Construct a matrix for each instruction.
+(This matrix is an artifact for part (b).)
+3) Using the basis formulae, construct the formula for the kinetic energy of the system and use this to find:
+--{T}- + (-{ih}-/2-{|{pi}|}--{|{delta}|t}-)-{F}-(-{f|{#770}|}-)
+and obtain the diagonals as approximations to the potentials needed.
+
+For part (b):
+1) Use the matrix obtained in (a) to obtain a permutation representation.
+2) Simplify this permutation representation based on the number of levels (user's input.)
+3) Translate this to a batch of programs to permute states based on the qubits of the IBM Q.
+
+*{1.4 Scope}*
+The program suggested by John Preskill to maximise usage of quantum computers in the NISQ stage, and the methods implicit in the constructive proofs of Yao et. al., is used to create a mini- compiler which will reuse qubits to effect replication. Furthermore, the algorithm for approximating the unitary operators corresponding to a given operation, that the author has developed, is expected to simplify this task greatly.
+
+*{1.5 Summary}*
+A comprehensive, yet abriged, overview of the project was given in this chapter.
+
+<u>Chapter 2</u>
+*{Literature Survey}*
+
+2.1 *{Simulation of quantum architectures}*
+-{Preskill (2018), Quantum Computing in the NISQ era and beyond.}-
+https://quantum-journal.org/papers/q-2018-08-06-79/
+
+Noisy Intermediate-Scale Quantum (NISQ) technology will be available in the near future. Quantum computers with 50-100 qubits may be able to perform tasks which surpass the capabilities of today’s classical digital computers, but
+noise in quantum gates will limit the size of quantum circuits that can be executed reliably. NISQ devices will be useful tools for exploring many-body quantum physics, and may have other useful applications, but the 100-qubit quantum computer will not change the world right away — we should regard it as a significant step toward the more powerful quantum technologies of the future. Quantum technologists should continue to strive for more accurate quantum gates and, eventually, fully fault-tolerant quantum computing.
+
+2.2 *{Design of quantum architectures}*
+-{X.Fu, et al (2018), A Microarchitecture for a Superconducting Quantum Processor.}-
+https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8358026
+
+This article proposes a quantum microarchitecture, QuMA. Flexible programmability of a quantum processor is achieved by multilevel instructions decoding, abstracting analog control into digital control, and translating instruction execution with nondeterministic timing into event trigger with precise timing. QuMA is validated by several single-qubit experiments on a superconducting qubit.
+
+2.3 *{Algorithm for operator construction}*
+-{Goyal (2017), On a Means of Extensive Condensation of Formal Representations of Algorithms.}-
+http://www.grdjournals.com/article?paper_id=GRDCF003017
+
+There is a provision in the rules of set theory and the set theoretic definition of 'algorithm' which allows for condensation of the existing representations of algorithms, drawing on certain classical results of Cantor and Godel. This condensation was also completely effective on formalizations of programs running on a Turing Machine. An equivalence is demonstrated between an algorithmic process and a dynamic physical process involving the motion of a particle in a certain impulse field. This does not condense the problem in the context of modern digital computers, but greatly condenses it for the human brain and certain analog systems, as will be demonstrated. Two theorems will be presented, regarding formalism of 'algorithm', one by which we will see that all computationally solvable problems, with finite sized inputs, are equivalent to the solving of an equation, f(x) =0 for an integer valued function f on the integers. The second theorem will demonstrate that a large subclass of these problems are reduced to the factorization of an integer. It is understood that the invention of alternate formal representations of algorithms may be critical to several problems of computation, including the P vs NP problem.
+
+<u>Chapter 4</u>
+*{System Requirements}*
+
+4.1 *{Functional Requirements}*
+ 4.1.1 *{Hardware}*
+*{IBM Quantum Computer; accessed over the cloud}*
+IBM Q refers to a publicly accessible device and a software suite for its usage. By all standards, IBM Q is a quantum computer, albeit too small to be useful. It is accessed via a network that includes IBM's "bluemix" servers, and registration is unconditional. The main interfaces are via the *{Quantum Composer}*, which is a drag and drop interface for visual programming, *{QASM}*, which is an assembly language, and, most importantly, *{QISKit}*, which is a Python-based library which compiles instructions to QASM.
+
+*{Desktop Architecture supporting GCC}*
+We will be using C with -{W}- (see below) for development purposes. The system also requires an internet connection.
+
+ 4.1.2 *{Software}*
+*{Interface via Bluemix}*
+The web-based application mentioned above- for accessing both simulators of, and the actual devices associated with IBM Q.
+
+*{QISKit}*
+This may be used to compile single line instructions to QASM.
+
+*{-{W}-: literate programming tool}*
+Natively developed literate programming tool. Ideal for use in scientific programming, and also where subroutine stack must be kept relatively empty.
+
+*{GCC}*
+For use with -{W}-. It has been determined that C, compiled with a C++ compiler (g++) will be ideal for this system's specification.
+
+4.2. *{Nonfunctional Requirements}*
+ 4.2.1. *{Performance Requirements}*
+*{Memory usage}*
+The system is expected to make extensive disk usage, with many writes per second. It is therefore critical that this be optimised.
+
+*{Garbage minimisation}*
+The process of calculation will leave a great deal of garbage on RAM as well as the disk. It is hoped that the development process will minimise this.
+
+*{Extensibility}*
+The system has to be -{open}- for extension on two fronts: the serialisation scheme for 1.3.(b), and the optimisation of the use of the matrix obtained in 1.3.(a).
+
+ 4.2.2 *{Software quality requirements}*
+*{Documentation}*
+Good documentation is critical to the system, since the algorithms are novel, and hitherto unpublished. The use of literate programming is expected to assist with this.
+
+*{Portability}*
+Since the software is the first of its kind, and also there appears to be little or no communication with other applications, the system must not make extensive use of local non-portable references. The changefile mechanism of -{W}- must assist in this.
+
+4.3 *{Summary}*
+The requirements of the system, as determined in the early researches and sporadically updated, are listed out here.
+
+<u>Chapter 5</u>
+*{System implementation.}*
+
+ 5.1 *{System Architecture}*
+The below plan appears to be a closely coupled and inextensible system due to an ostensible -{peer-peer}- relationship between each of the engines. However, there is a clearly identifiable set of separable programs that are central to the system. This will be broached in the subsequent section.
+
+<img src="C:\Users\Sairam\OneDrive\Sairam\Final year project\Physics Engine\Architecture.png">
+
+ 5.2 *{Modules description}*
+ 5.2.1 *{Engineering instruction (Physics engine)}*
+This module will be responsible for the processing of the physics-soecification of the users' desired implementation of -{symbols}-. We say -{symbols}-, because the system is capable of even processing a specification that has a discrete set of -{more than}- two states. This engine will automate the process of deriving an approximate hermitian operator for the associated quantities. This is done using a combination of the logistic functions' quantisation and the aforementioned (Chapter 2) algorithm.
+
+ 5.2.2 *{Program translation (Architecture simulation)}*
+In this part we must set up the simulated hardware as necessary, and prepare the operators (unitary) that must act on these qubits. This specification (by the user) will make use of common low level operations- primarily -{flipping}- bits in bit-addressable ways. The power of these devices is, however, greatly magnified when we take the addresses of instructions as arguments in our programs, too- as is done in von Neumann arcitectures- but this is hypothetical.
+
+ 5.2.3 *{Simulation with IBM Q}*
+The final "script" output will consist of batches of QASM/QISKit instructions to be issued to QISKit, which will consist of varied (generally) interpretations of the addresses of the qubits. It may make use of phase estimation in order to obtain good approximations while continuing operations on qubits -{after}- measurement, in effect. There will be an extensive use of memory in this step, and good extensions of our software may require the use of virtual memory.
+
+ 5.3 *{Summary}*
+In this chapter we drew out the system architecture and, thereby, a rough but more exact specification of the system.
+
+
+
+/@
+
+endw

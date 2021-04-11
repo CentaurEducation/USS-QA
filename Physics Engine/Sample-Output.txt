@@ -1,0 +1,1 @@
+\hat{I} + 2\sum_{r=0}^{\infty} \binom{-1}{r} ( \hat{I} + \sum_{n=0}^{\infty} \frac{1}{n!}(- \hat{E^{2}})^{n})^{r}-\sum_{j=1}^{\infty}2^{-j}(\frac{\hat{I}}{2}-2\sum_{\nu=1}^{\infty}\frac{\nu mod 2}{\pi\nu}\sum_{i=1}^{\infty}\frac{(-1)^{m+1}(2\pi\nu)^{2m-1}}{(2m-1)!}2\sum_{r=0}^{\infty} \binom{-1}{r} ( \hat{I} + \sum_{n=0}^{\infty} \frac{1}{n!}(- \hat{E^{2}})^{n})^{r})^{2m-1})

@@ -1,0 +1,8 @@
+-This "W" source contains HTML.
+-Due to the presence of LaTeX in the C source, the file must NOT be compiled directly- some discretion must be excercised.
+-This "W" source contains HTML.
+-Due to the presence of LaTeX in the C source, the file must NOT be compiled directly- some discretion must be excercised.
+-This "W" source contains HTML.
+-Due to the presence of LaTeX in the C source, the file must NOT be compiled directly- some discretion must be excercised.
+---------------------------------------------------------------
+-Changed address of image for system architecture manually

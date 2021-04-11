@@ -1,0 +1,111 @@
+@
+*{APPENDIX}*
+*{Implementation}*
+
+Below is the implementation of the -{first}- module, i.e. the Physics Engine. The general plan is as below.
+/@
+
+$
+PhysEng.cpp
+[[ Start. ]]
+[[ 1. Read formula for -{f}- in terms of *{x}*,*{p}*. ]]
+[[ 2. Substitute -{f}- in operator formula with -{JAI-0}-. ]]
+[[ 3. Optimise formula. ]]
+[[ Stop. ]]
+/$
+
+@
+Out of these, since -{utility}- is not a great non-functional requirement for us (ref. Chapter 4), we will keep steps (1) and (3) open for extension. In particular, we will leave step (3) blank:
+/@
+
+$
+C
+[[ 3. Optimise formula. ]]:-
+;
+/$
+
+@
+and we will assume that -{f}- has a simple formula, and that the user has precompiled it into a LaTeX-coded representation. In any reasonable extension, -{f}- will be allowed to be more arbitrary and the user must be able to specify it in a programming language in a separate file. The LaTeX-set form must be produced with an extra compilation step thereafter. (Indeed, the -{second}- module- the "program translation- can be easily used for this purpose.)
+Thus, we feed the "formula" (pre-compiled, perhaps using -{JAI-0}- with an optimisation/minimisation step) to our program as input.
+/@
+
+$
+C
+[[ 1. Read formula for -{f}- in terms of *{x}*,*{p}*. ]]:-
+-{strcpy}- ( -{f}-, -{argv}- [1] );
+/*Besides this, we also have to read the number of -{levels}-, -{L}-, this quantity is discretised to, to complete the description. Preferably, this number is a positive power of 2.*/
+-{L}- <- -{atoi}- ( -{argv}- [2] );
+/$
+
+@
+The formula that has been derived from -{JAI-0}-, is as follows. We take the quantity, -{f}-, and spread it over a range of 1,...,-{L}- using a variation of the logistic function, with range as given. This means that we first have to -{scale}- the usual logistic function along the -{y}--axis appropriately, before then shifting it upward, so that its lower limit stands at 1. This gives us:
+-{L}- |{times}| 1/(1 + -{e}-^{--{f}-}^)
+In order to discretise this, then, we simply have to take the floor function- the scaling will make sure that all the values fall into the right place on applying the floor:
+|{lfloor}| -{L}- |{times}| 1/(1 + -{e}-^{--{f}-}^) |{rfloor}|
+Furthermore, -{JAI-0}- gives us a means to express the floor function, that does -{not}- require the [0,1] interval representation of memory. This goes as below:
+|{lfloor}| -{x}- |{rfloor}| = -{x}- - |{Sigma}|_{-{j}- |{in}| *{N}* }_ 2^{--{j}-}^ (1/2 - 2|{Sigma}|_{-{|{nu}|}- |{in}| *{N}* }_ (-{|{nu}|}- mod 2/ -{|{pi}||{nu}|}-) sin 2^{-{j}-}^-{|{pi}||{nu}|x}-
+This translates to code as below.
+/@
+
+$
+C
+[[ 2. Substitute -{f}- in operator formula with -{JAI-0}-. ]]:-
+/*We store the final expression in a string named -{op}-, for "operator". Understandably, this string is quite immense, so we have split its specification in our computation from our notes into a function of a smaller string, -{g}-. Accordingly, the below code will reflect that. However, the output -{will}- be a single formula.*/
+-{itoa}- ( -{L}-, -{g}-, 10 );
+-{strcat}- ( -{g}-, #{"\\sum_{r=0}^{\\infty} \\binom{-1}{r} ( \\hat{I} + \\sum_{n=0}^{\\infty} \\frac{1}{n!}(- "}# );
+-{strcat}- ( -{g}-, -{f}- );
+-{strcat}- ( -{g}-, #{")^{n})^{r}"}# );
+
+-{strcpy}- ( -{op}-, #{"\\hat{I} + "}# );
+-{strcat}- ( -{op}-, -{g}- );
+-{strcat}- ( -{op}=, #{"-\\sum_{j=1}^{\\infty}2^{-j}(\\frac{\\hat{I}}{2}-2\\sum_{\\nu=1}^{\\infty}\\frac{\\nu mod 2}{\\pi\\nu}"}# );
+-{strcat}- ( -{op}-, #{"\\sum_{i=1}^{\\infty}\\frac{(-1)^{m+1}(2\\pi\\nu)^{2m-1}}{(2m-1)!}"}# );
+-{strcat}- ( -{op}-, -{g}- );
+-{strcat}- ( -{op}-, #{")^{2m-1})"}# );
+
+
+/$
+
+@
+Since we want the user to be free enough to use forms of -{f}- that may extend in any number of spatial dimensions, and also may contain different notations for the generalised momenta (with any number of particles), we will write the form of -{op}- in a file, -{Output.txt}-, which can then be -{changed}- using either -{W}-'s own -{changefile}- mechanism, or with <font face= "CMU Typewriter Text">command+H</font>. Accordingly, we declare the necessary pointers and the output method.
+/@
+
+$
+C
+[[ Start. ]]:-
+#include_lt_-{stdio.h}-_gt_
+#include_lt_-{stdlib.h}-_gt_
+#include_lt_-{string.h}-_gt_
+
+int -{main}- ( int -{argc}-, char *-{argv}- [] )
+{
+int -{N}-, -{L}-;
+char -{f}- [1000], -{g}- [10000], -{op}- [10000];
+
+FILE *-{Out}- <- -{fopen}- ( -{"Output.txt"}- , -{"w"}- );
+/$
+
+@
+Write the output expression into -{Output.txt}-.
+/@
+
+$
+C
+[[ Stop. ]]:-
+-{fprintf}- ( -{Out}-, -{"%s"}-, -{op}- );
+
+return 0;
+}
+/$
+
+@
+We make a few notes for the log:
+/@
+
+$
+Log.txt
+-This "W" source contains HTML.
+-Due to the presence of LaTeX in the C source, the file must NOT be compiled directly- some discretion must be excercised.
+/$
+
+endw

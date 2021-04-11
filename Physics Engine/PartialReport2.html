@@ -1,0 +1,94 @@
+<html>
+<head>
+<title>PartialReport2
+</title>
+</head>
+<body>
+<h1 style="font-family:CMU Serif;text-align:center;">
+PartialReport2
+</h1>
+<p style="font-family:CMU Serif;font-size:100%;text-align:justify;"><br>
+<b>APPENDIX</b><br><b>Implementation</b><br><br>Below is the implementation of the <i>first</i> module, i.e. the Physics Engine. The general plan is as below.<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; Start. &rang;<br>
+&lang; 1. Read formula for <i>f</i> in terms of <b>x</b>,<b>p</b>. &rang;<br>
+&lang; 2. Substitute <i>f</i> in operator formula with <i>JAI-0</i>. &rang;<br>
+&lang; 3. Optimise formula. &rang;<br>
+&lang; Stop. &rang;<br>
+
+</b></p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:justify;"><br>
+Out of these, since <i>utility</i> is not a great non-functional requirement for us (ref. Chapter 4), we will keep steps (1) and (3) open for extension. In particular, we will leave step (3) blank:<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; 3. Optimise formula. &rang;:-<br>
+;<br>
+
+</b></p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:justify;"><br>
+and we will assume that <i>f</i> has a simple formula, and that the user has precompiled it into a LaTeX-coded representation. In any reasonable extension, <i>f</i> will be allowed to be more arbitrary and the user must be able to specify it in a programming language in a separate file. The LaTeX-set form must be produced with an extra compilation step thereafter. (Indeed, the <i>second</i> module- the "program translation- can be easily used for this purpose.)<br>Thus, we feed the "formula" (pre-compiled, perhaps using <i>JAI-0</i> with an optimisation/minimisation step) to our program as input.<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; 1. Read formula for <i>f</i> in terms of <b>x</b>,<b>p</b>. &rang;:-<br>
+<i>strcpy</i> ( <i>f</i>, <i>argv</i> [1] );<br>
+</b>(Besides this, we also have to read the number of <i>levels</i>, <i>L</i>, this quantity is discretised to, to complete the description. Preferably, this number is a positive power of 2.)<b><br>
+<i>L</i> &larr; <i>atoi</i> ( <i>argv</i> [2] );<br>
+
+</b></p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:justify;"><br>
+The formula that has been derived from <i>JAI-0</i>, is as follows. We take the quantity, <i>f</i>, and spread it over a range of 1,...,<i>L</i> using a variation of the logistic function, with range as given. This means that we first have to <i>scale</i> the usual logistic function along the <i>y</i>-axis appropriately, before then shifting it upward, so that its lower limit stands at 1. This gives us:<br><i>L</i> &times; 1/(1 + <i>e</i><sup>-<i>f</i></sup>)<br>In order to discretise this, then, we simply have to take the floor function- the scaling will make sure that all the values fall into the right place on applying the floor:<br>&lfloor; <i>L</i> &times; 1/(1 + <i>e</i><sup>-<i>f</i></sup>) &rfloor;<br>Furthermore, <i>JAI-0</i> gives us a means to express the floor function, that does <i>not</i> require the [0,1] interval representation of memory. This goes as below:<br>&lfloor; <i>x</i> &rfloor; = <i>x</i> - &Sigma;<sub><i>j</i> &in; <b>N</b> </sub> 2<sup>-<i>j</i></sup> (1/2 - 2&Sigma;<sub><i>&nu;</i> &in; <b>N</b> </sub> (<i>&nu;</i> mod 2/ <i>&pi;&nu;</i>) sin 2<sup><i>j</i></sup><i>&pi;&nu;x</i><br>This translates to code as below.<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; 2. Substitute <i>f</i> in operator formula with <i>JAI-0</i>. &rang;:-<br>
+</b>(We store the final expression in a string named <i>op</i>, for "operator". Understandably, this string is quite immense, so we have split its specification in our computation from our notes into a function of a smaller string, <i>g</i>. Accordingly, the below code will reflect that. However, the output <i>will</i> be a single formula.)<b><br>
+<br>
+<i>itoa</i> ( <i>L</i>, <i>g</i>, 10 );<br>
+<i>strcat</i> ( <i>g</i>, </font><font face="CMU Typewriter Text">"\\sum_{r=0}^{\\infty} \\binom{-1}{r} ( \\hat{I} + \\sum_{n=0}^{\\infty} \\frac{1}{n!}(- "</font><font face="CMU Serif"> );<br>
+<i>strcat</i> ( <i>g</i>, <i>f</i> );<br>
+<i>strcat</i> ( <i>g</i>, </font><font face="CMU Typewriter Text">")^{n})^{r}"</font><font face="CMU Serif"> );<br>
+<i>strcpy</i> ( <i>op</i>, </font><font face="CMU Typewriter Text">"\\hat{I} + "</font><font face="CMU Serif"> );<br>
+<i>strcat</i> ( <i>op</i>, <i>g</i> );<br>
+<i>strcat</i> ( <i>op</i>, </font><font face="CMU Typewriter Text">"-\\sum_{j=1}^{\\infty}2^{-j}(\\frac{\\hat{I}}{2}-2\\sum_{\\nu=1}^{\\infty}\\frac{\\nu mod 2}{\\pi\\nu}"</font><font face="CMU Serif"> );<br>
+<i>strcat</i> ( <i>op</i>, </font><font face="CMU Typewriter Text">"\\sum_{i=1}^{\\infty}\\frac{(-1)^{m+1}(2\\pi\\nu)^{2m-1}}{(2m-1)!}"</font><font face="CMU Serif"> );<br>
+<i>strcat</i> ( <i>op</i>, <i>g</i> );<br>
+<i>strcat</i> ( <i>op</i>, </font><font face="CMU Typewriter Text">")^{2m-1})"</font><font face="CMU Serif"> );<br><br>
+<br>
+
+</b></p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:justify;"><br>
+Since we want the user to be free enough to use forms of <i>f</i> that may extend in any number of spatial dimensions, and also may contain different notations for the generalised momenta (with any number of particles), we will write the form of <i>op</i> in a file, <i>Output.txt</i>, which can then be <i>changed</i> using either <i>W</i>'s own <i>changefile</i> mechanism, or with <font face= "CMU Typewriter Text">command+H</font>. Accordingly, we declare the necessary pointers and the output method.<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; Start. &rang;:-<br>
+#include&lt;<i>stdio.h</i>&gt;<br>
+#include&lt;<i>stdlib.h</i>&gt;<br>
+#include&lt;<i>string.h</i>&gt;<br>
+<br>
+int <i>main</i> ( int <i>argc</i>, char *<i>argv</i> [] )<br>
+{<br>
+int <i>N</i>, <i>L</i>;<br>
+char <i>f</i> [1000], <i>g</i> [10000], <i>op</i> [10000];<br>
+<br>
+FILE *<i>Out</i> &larr; <i>fopen</i> ( <i>"Output.txt"</i> , <i>"w"</i> );<br>
+
+</b></p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:justify;"><br>
+Write the output expression into <i>Output.txt</i>.<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>&lang; Stop. &rang;:-<br>
+<i>fprintf</i> ( <i>Out</i>, <i>"%s"</i>, <i>op</i> );<br>
+<br>
+return 0;<br>
+}<br>
+
+</b></p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:justify;"><br>
+We make a few notes for the log:<br>
+</p>
+<p style="font-family:CMU Serif;font-size:100%;text-align:left;padding-left:45px;padding-right:45px">
+<b>-This "W" source contains HTML.<br>
+-Due to the presence of LaTeX in the C source, the file must NOT be compiled directly- some discretion must be excercised.<br>
+
+</b></p>
